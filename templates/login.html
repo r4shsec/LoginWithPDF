@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Login
+{% endblock %}
+
+{% block content %}
+    <h2>Login</h2>
+
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+    {% if message %}
+        <p style="color: green;">{{ message }}</p>
+    {% endif %} 
+
+    <form method="POST" enctype="multipart/form-data" action="/login">
+        <label for="pdf_file">Choose PDF to upload:</label>
+        <input type="file" id="pdf_file" name="filename" accept="application/pdf" />
+        <button type="submit">Login</button>
+    </form>
+    <p>Not registered? <a href="/register">Register</a></p>
+{% endblock %}

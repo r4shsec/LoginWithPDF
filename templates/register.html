@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block content %}
+    <h2>Register</h2>
+
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+    {% if message %}
+        <p style="color: green;">{{ message }}</p>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" action="/register">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+        <label for="pdf_file">Choose PDF to upload: <strong>(KEEP IT UNIQUE)</strong></label>
+        <input type="file" id="pdf_file" name="filename" accept="application/pdf" />
+        <button type="submit">Register</button>
+    </form>
+    <p>Already registered? <a href="/login">Login</a></p>
+{% endblock %}
