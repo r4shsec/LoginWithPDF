@@ -55,6 +55,15 @@ class Brains:
         conn.close()
         return user
 
+    @staticmethod
+    def get_username(username:str):
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE username=?", (username,))
+        user = cursor.fetchone()
+        conn.close()
+        return user
+
 @app.route('/')
 def index():
     user = get_logged_in_user()
@@ -73,6 +82,8 @@ def register():
     pdf_file = request.files.get('filename')
     if not pdf_file:
         return render_template('register.html', error="No PDF uploaded.")
+    if Brains.get_username(username):
+        return render_template('register.html', error="User already exists.")
     
     if Brains.get_user_hash(pdf_file):
         return render_template('register.html', error="User already exists.")
