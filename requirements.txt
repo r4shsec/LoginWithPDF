@@ -1,3 +1,4 @@
 Flask
 gunicorn
+python-magic-bin
 Flask-JWT-Extended

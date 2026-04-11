@@ -2,16 +2,17 @@ import os
 import jwt
 import sys
 import uuid
+import magic
 import sqlite3
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask import Flask, request, render_template, jsonify, make_response, url_for, redirect
 
 app = Flask(
     __name__
 )
 DB_PATH = 'database.db'
-app.config['SECRET_KEY'] = 'rash'
+app.config['SECRET_KEY'] = 'RANDOM_SECRET_KEY' # Change random secret key in production
 app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024
 
 def get_logged_in_user():
@@ -80,6 +81,9 @@ def register():
     
     username = request.form['username']
     pdf_file = request.files.get('filename')
+    if magic.from_buffer(pdf_file.read(2048), mime=True) != 'application/pdf':
+        return render_template('register.html', error="Uploaded file is not a valid PDF.")
+    pdf_file.seek(0)
     if not pdf_file:
         return render_template('register.html', error="No PDF uploaded.")
     if Brains.get_username(username):
@@ -104,17 +108,23 @@ def login():
         return render_template('login.html', error="No PDF uploaded.")
     
     user = Brains.get_user_hash(pdf_file)
-    username = user[0]
     if user:
+        username = user[0]
         token = jwt.encode(
-            {"username": username, "exp": datetime.utcnow() + timedelta(minutes=30)},
+            {"username": username, "exp": datetime.now(timezone.utc) + timedelta(minutes=30)},
             app.config['SECRET_KEY'],
             algorithm="HS256"
         )
         resp = make_response(render_template('index.html', username=username))
-        resp.set_cookie('token',token, httponly=True, secure=False, samesite='Strict')
+        resp.set_cookie('token',token, httponly=True, secure=False, samesite='Strict') # In production, set secure=True and consider samesite settings based on your needs
         return resp
     return render_template('login.html', error="Invalid username or PDF")
+
+@app.route('/logout')
+def logout():
+    resp = make_response(redirect(url_for('login')))
+    resp.set_cookie('token', '', expires=0)
+    return resp
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
